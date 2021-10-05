@@ -79,6 +79,13 @@ class SortCodeTest {
 	}
 
 	@Test
+	void testBlankSortCode() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			new SortCode(" ");
+		});
+	}
+
+	@Test
 	void testSingleDigitSortCode() {
 		assertThrows(IllegalArgumentException.class, () -> {
 			new SortCode("5-55-55");
