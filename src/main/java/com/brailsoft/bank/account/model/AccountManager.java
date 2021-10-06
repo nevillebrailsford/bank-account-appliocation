@@ -11,51 +11,53 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 
-public class BankManager {
-	private static BankManager instance = null;
+public class AccountManager {
+	private static AccountManager instance = null;
 
 	private ObservableMap<SortCode, ObservableList<Account>> accounts = null;
 
 	private ListChangeListener<? super Account> listener;
 
-	public synchronized static BankManager getInstance() {
+	public synchronized static AccountManager getInstance() {
 		if (instance == null) {
-			instance = new BankManager();
+			instance = new AccountManager();
 		}
 		return instance;
 	}
 
-	private BankManager() {
+	private AccountManager() {
 		accounts = FXCollections.observableMap(new ConcurrentHashMap<>());
 		listener = null;
 	}
 
-	public synchronized void addAccountListener(MapChangeListener<? super SortCode, ? super List<Account>> listener) {
+	public synchronized void addMapListener(MapChangeListener<? super SortCode, ? super List<Account>> listener) {
 		accounts.addListener(listener);
 	}
 
-	public synchronized void removeAccountListener(
-			MapChangeListener<? super SortCode, ? super List<Account>> listener) {
+	public synchronized void removeMapListener(MapChangeListener<? super SortCode, ? super List<Account>> listener) {
 		accounts.removeListener(listener);
 	}
 
-	public synchronized void addAccountListListener(ListChangeListener<? super Account> listener) {
+	public synchronized void addListListener(ListChangeListener<? super Account> listener) {
 		if (this.listener != null) {
-			throw new IllegalStateException("AccountListListener already defined");
+			throw new IllegalStateException("AccountManager: AccountListListener already defined");
 		}
 		this.listener = listener;
 		addListenerToAllLists(listener);
 	}
 
-	public synchronized void removeAccountListListener() {
-		if (listener == null) {
-			throw new IllegalStateException("AccountListListener not defined");
+	public synchronized void removeListListener() {
+		if (this.listener == null) {
+			throw new IllegalStateException("AccountManager: AccountListListener not defined");
 		}
 		removeListenerFromAllLists(listener);
 		this.listener = null;
 	}
 
-	public synchronized void addAccount(Account account) {
+	public synchronized void add(Account account) {
+		if (account == null) {
+			throw new IllegalArgumentException("AccountManager: account was null");
+		}
 		ObservableList<Account> accountsForSortCode = accounts.get(account.getSortCode());
 		if (accountsForSortCode == null) {
 			accountsForSortCode = FXCollections.observableArrayList();
@@ -65,29 +67,31 @@ public class BankManager {
 			}
 		}
 		if (accountsForSortCode.contains(account)) {
-			throw new IllegalStateException("BankManager: account already exists");
+			throw new IllegalStateException("AccountManager: account already exists");
 		} else {
 			accountsForSortCode.add(new Account(account));
 		}
 	}
 
-	public synchronized void changeAccount(Account oldAccount, Account newAccount) {
-		removeAccount(oldAccount);
-		addAccount(newAccount);
+	public synchronized void change(Account oldAccount, Account newAccount) {
+		remove(oldAccount);
+		add(newAccount);
 	}
 
-	public synchronized void removeAccount(Account account) {
+	public synchronized void remove(Account account) {
+		if (account == null) {
+			throw new IllegalArgumentException("AccountManager: account was null");
+		}
 		List<Account> accountsForSortCode = accounts.get(account.getSortCode());
 		if (accountsForSortCode == null || !accountsForSortCode.contains(account)) {
-			throw new IllegalStateException("BankManager: account not found");
+			throw new IllegalStateException("AccountManager: account not found");
 		} else {
 			accountsForSortCode.remove(account);
 		}
 	}
 
-	public synchronized void clearAccounts() {
+	public synchronized void clear() {
 		accounts.clear();
-		listener = null;
 	}
 
 	public synchronized List<SortCode> getSortCodes() {
@@ -109,6 +113,15 @@ public class BankManager {
 		return accountList;
 	}
 
+	public synchronized List<Account> getAllAccounts() {
+		List<Account> accountList = new ArrayList<>();
+		getSortCodes().stream().forEachOrdered(sortCode -> {
+			accountList.addAll(getAccountsForSortCode(sortCode));
+		});
+		return accountList;
+
+	}
+
 	private ObservableList<Account> getAccountListForSortCode(SortCode sortCode) {
 		return accounts.get(sortCode);
 	}
@@ -117,14 +130,12 @@ public class BankManager {
 		getSortCodes().stream().forEach(sc -> {
 			getAccountListForSortCode(sc).addListener(listener);
 		});
-
 	}
 
 	private void removeListenerFromAllLists(ListChangeListener<? super Account> listener) {
 		getSortCodes().stream().forEach(sc -> {
 			getAccountListForSortCode(sc).removeListener(listener);
 		});
-
 	}
 
 }
