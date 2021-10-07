@@ -1,1 +1,1 @@
-${Account}:type:CURRENT:name:My Account:number:12345678:sortcode:55-55-55
+<Account><type>CURRENT</type><name>My Account</name><number>12345678</number><sortcode>55-55-55</sortcode></Account>
