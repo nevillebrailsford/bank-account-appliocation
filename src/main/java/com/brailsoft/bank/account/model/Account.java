@@ -2,13 +2,15 @@ package com.brailsoft.bank.account.model;
 
 import java.util.Objects;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class Account implements Comparable<Account> {
 	private StringProperty name = new SimpleStringProperty(this, "name", "");
 	private StringProperty number = new SimpleStringProperty(this, "number", "");
-	private final SortCode sortCode;
+	private ObjectProperty<SortCode> sortCode = new SimpleObjectProperty<>(this, "sortCode", null);;
 	private AccountType type;
 
 	public Account(AccountType type, String name, String number, SortCode sortCode) {
@@ -30,7 +32,7 @@ public class Account implements Comparable<Account> {
 		this.type = type;
 		this.name.set(name);
 		this.number.set(number);
-		this.sortCode = new SortCode(sortCode);
+		this.sortCode.set(new SortCode(sortCode));
 	}
 
 	public Account(Account that) {
@@ -40,7 +42,7 @@ public class Account implements Comparable<Account> {
 		this.type = that.type;
 		this.name.set(that.name.get());
 		this.number.set(that.number.get());
-		this.sortCode = new SortCode(that.sortCode);
+		this.sortCode.set(new SortCode(that.sortCode.get()));
 	}
 
 	public String getName() {
@@ -64,7 +66,11 @@ public class Account implements Comparable<Account> {
 	}
 
 	public SortCode getSortCode() {
-		return new SortCode(sortCode);
+		return new SortCode(sortCode.get());
+	}
+
+	public ObjectProperty<SortCode> sortCodeProperty() {
+		return sortCode;
 	}
 
 	@Override
@@ -82,7 +88,7 @@ public class Account implements Comparable<Account> {
 			return false;
 		Account that = (Account) obj;
 		return Objects.equals(this.name.get(), that.name.get()) && Objects.equals(this.number.get(), that.number.get())
-				&& Objects.equals(this.sortCode, that.sortCode) && this.type == that.type;
+				&& Objects.equals(this.sortCode.get(), that.sortCode.get()) && this.type == that.type;
 	}
 
 	@Override
@@ -91,13 +97,13 @@ public class Account implements Comparable<Account> {
 		builder.append(type).append(" account");
 		builder.append(" named ").append(name.get());
 		builder.append(" numbered ").append(number.get());
-		builder.append(" held in ").append(sortCode);
+		builder.append(" held in ").append(sortCode.get());
 		return builder.toString();
 	}
 
 	@Override
 	public int compareTo(Account that) {
-		if (!this.sortCode.equals(that.sortCode)) {
+		if (!this.sortCode.get().equals(that.sortCode.get())) {
 			throw new IllegalStateException("Can only compare accounts with the same sort code");
 		}
 		if (this.type.compareTo(that.type) == 0) {

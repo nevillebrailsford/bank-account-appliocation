@@ -142,4 +142,12 @@ class SortCodeTest {
 		});
 	}
 
+	@Test
+	void testNullStringSortCode() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			String missing = null;
+			new SortCode(missing);
+		});
+	}
+
 }
