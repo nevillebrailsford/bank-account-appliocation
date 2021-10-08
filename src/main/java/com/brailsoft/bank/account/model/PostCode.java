@@ -2,23 +2,23 @@ package com.brailsoft.bank.account.model;
 
 import java.util.Objects;
 
-public class SortCode implements Comparable<SortCode> {
-	private static final String sortCodeRegularExpression = "^[0-9]{2}[-][0-9]{2}[-][0-9]{2}$";
-	private final String value;
+public class PostCode implements Comparable<PostCode> {
+	private static String postCodeRegularExpression = "^[A-Z]{1,2}\\d[A-Z\\d]? ?\\d[A-Z]{2}$";
+	private String value;
 
-	public SortCode(String value) {
+	public PostCode(String value) {
 		if (value == null) {
-			throw new IllegalArgumentException("SortCode: value must be specified");
+			throw new IllegalArgumentException("PostCode: value must be specified");
 		}
-		if (!value.matches(sortCodeRegularExpression)) {
+		if (!value.matches(postCodeRegularExpression)) {
 			throw new IllegalArgumentException(" is not a valid sort code");
 		}
 		this.value = value;
 	}
 
-	public SortCode(SortCode that) {
+	public PostCode(PostCode that) {
 		if (that == null) {
-			throw new IllegalArgumentException("SortCode: sort code must be supplied");
+			throw new IllegalArgumentException("PostCode: value must be specified");
 		}
 		this.value = that.value;
 	}
@@ -40,7 +40,7 @@ public class SortCode implements Comparable<SortCode> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		SortCode that = (SortCode) obj;
+		PostCode that = (PostCode) obj;
 		return Objects.equals(value, that.value);
 	}
 
@@ -50,7 +50,7 @@ public class SortCode implements Comparable<SortCode> {
 	}
 
 	@Override
-	public int compareTo(SortCode that) {
+	public int compareTo(PostCode that) {
 		return this.value.compareTo(that.value);
 	}
 
