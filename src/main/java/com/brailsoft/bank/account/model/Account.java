@@ -103,12 +103,13 @@ public class Account implements Comparable<Account> {
 
 	@Override
 	public int compareTo(Account that) {
-		if (!this.sortCode.get().equals(that.sortCode.get())) {
-			throw new IllegalStateException("Can only compare accounts with the same sort code");
+		int retCode = this.sortCode.get().compareTo(that.sortCode.get());
+		if (retCode == 0) {
+			retCode = this.type.compareTo(that.type);
+			if (retCode == 0) {
+				retCode = this.number.get().compareTo(that.number.get());
+			}
 		}
-		if (this.type.compareTo(that.type) == 0) {
-			return this.number.get().compareTo(that.number.get());
-		}
-		return this.type.compareTo(that.type);
+		return retCode;
 	}
 }

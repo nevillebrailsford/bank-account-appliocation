@@ -118,6 +118,7 @@ public class AccountManager {
 		getSortCodes().stream().forEachOrdered(sortCode -> {
 			accountList.addAll(getAccountsForSortCode(sortCode));
 		});
+		Collections.sort(accountList);
 		return accountList;
 
 	}

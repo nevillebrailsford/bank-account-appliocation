@@ -17,18 +17,18 @@ class BranchTest {
 	private static final String LINE3 = "The County";
 	private static final String LINE4 = "Country";
 	private static final PostCode POST_CODE = new PostCode("CW3 9SR");
+	private static final SortCode LOWER_SORT_CODE = new SortCode("55-55-54");
 	private static final SortCode SORT_CODE = new SortCode("55-55-55");
-	private static final SortCode SORT_CODE_2 = new SortCode("55-55-56");
+	private static final SortCode HIGHER_SORT_CODE = new SortCode("55-55-56");
+	private static final String BANK_NAME = "bankname";
 	private static final Address LOWER_ADDRESS = new Address(POST_CODE,
 			new String[] { LINE1_LOWER, LINE2, LINE3, LINE4 });
 	private static final Address ADDRESS = new Address(POST_CODE, new String[] { LINE1, LINE2, LINE3, LINE4 });
 	private static final Address HIGHER_ADDRESS = new Address(POST_CODE,
 			new String[] { LINE1_HIGHER, LINE2, LINE3, LINE4 });
-	private static final String NO_SORT_CODE_STRING = "Branch at 98 The Street, The Town, The County, Country CW3 9SR has no sort codes";
-	private static final String ONE_SORT_CODE_STRING = "Branch at 98 The Street, The Town, The County, Country CW3 9SR and has sort code: 55-55-55";
-	private static final String TWO_SORT_CODES_STRING = "Branch at 98 The Street, The Town, The County, Country CW3 9SR and has sort codes: 55-55-55, 55-55-56";
+	private static final String SORT_CODE_STRING = "Branch at 98 The Street, The Town, The County, Country CW3 9SR with sort code 55-55-55";
 
-	Branch branch = new Branch(ADDRESS);
+	Branch branch = new Branch(ADDRESS, SORT_CODE, BANK_NAME);
 
 	@BeforeEach
 	void setUp() throws Exception {
@@ -36,12 +36,11 @@ class BranchTest {
 
 	@AfterEach
 	void tearDown() throws Exception {
-		branch.clear();
 	}
 
 	@Test
 	void testBranchAddress() {
-		new Branch(ADDRESS);
+		new Branch(ADDRESS, SORT_CODE, BANK_NAME);
 	}
 
 	@Test
@@ -55,52 +54,68 @@ class BranchTest {
 	}
 
 	@Test
-	void testGetSortCodes() {
-		assertEquals(0, branch.getSortCodes().size());
+	void testGetSortCode() {
+		assertEquals(SORT_CODE, branch.getSortCode());
+	}
+
+	@Test
+	void testGetBankName() {
+		assertEquals(BANK_NAME, branch.getBankname());
 	}
 
 	@Test
 	void testEqualsObject() {
-		assertEquals(branch, new Branch(ADDRESS));
-	}
-
-	@Test
-	void testAddSortCode() {
-		assertEquals(0, branch.getSortCodes().size());
-		branch.addSortCode(SORT_CODE);
-		assertEquals(1, branch.getSortCodes().size());
+		assertEquals(branch, new Branch(ADDRESS, SORT_CODE, BANK_NAME));
 	}
 
 	@Test
 	void testToString() {
-		assertEquals(NO_SORT_CODE_STRING, branch.toString());
-		branch.addSortCode(SORT_CODE);
-		assertEquals(ONE_SORT_CODE_STRING, branch.toString());
-		branch.addSortCode(SORT_CODE_2);
-		assertEquals(TWO_SORT_CODES_STRING, branch.toString());
+		assertEquals(SORT_CODE_STRING, branch.toString());
 	}
 
 	@Test
 	void testCompareTo() {
-		assertTrue(new Branch(LOWER_ADDRESS).compareTo(branch) < 0);
-		assertTrue(new Branch(branch).compareTo(branch) == 0);
-		assertTrue(new Branch(HIGHER_ADDRESS).compareTo(branch) > 0);
-	}
-
-	@Test
-	void testClear() {
-		assertEquals(0, branch.getSortCodes().size());
-		branch.addSortCode(SORT_CODE);
-		assertEquals(1, branch.getSortCodes().size());
-		branch.clear();
-		assertEquals(0, branch.getSortCodes().size());
+		assertTrue(branch.compareTo(new Branch(ADDRESS, LOWER_SORT_CODE, BANK_NAME)) > 0);
+		assertTrue(branch.compareTo(new Branch(ADDRESS, SORT_CODE, BANK_NAME)) == 0);
+		assertTrue(branch.compareTo(new Branch(ADDRESS, HIGHER_SORT_CODE, BANK_NAME)) < 0);
+		assertTrue(branch.compareTo(new Branch(LOWER_ADDRESS, SORT_CODE, BANK_NAME)) > 0);
+		assertTrue(branch.compareTo(new Branch(HIGHER_ADDRESS, SORT_CODE, BANK_NAME)) < 0);
+		assertTrue(branch.compareTo(new Branch(HIGHER_ADDRESS, LOWER_SORT_CODE, BANK_NAME)) > 0);
+		assertTrue(branch.compareTo(new Branch(LOWER_ADDRESS, HIGHER_SORT_CODE, BANK_NAME)) < 0);
 	}
 
 	@Test
 	void testNullAddress() {
 		assertThrows(IllegalArgumentException.class, () -> {
-			Address address = null;
-			new Branch(address);
+			new Branch(null, SORT_CODE, BANK_NAME);
+		});
+	}
+
+	@Test
+	void testNullSortcode() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			new Branch(ADDRESS, null, BANK_NAME);
+		});
+	}
+
+	@Test
+	void testNullBankname() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			new Branch(ADDRESS, SORT_CODE, null);
+		});
+	}
+
+	@Test
+	void testBlankBankname() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			new Branch(ADDRESS, SORT_CODE, "");
+		});
+	}
+
+	@Test
+	void testEMptyBankname() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			new Branch(ADDRESS, SORT_CODE, "    ");
 		});
 	}
 
@@ -110,16 +125,6 @@ class BranchTest {
 			Branch branch = null;
 			new Branch(branch);
 		});
-	}
-
-	@Test
-	void testDuplicateSortCodes() {
-		branch.addSortCode(SORT_CODE);
-		assertEquals(1, branch.getSortCodes().size());
-		assertThrows(IllegalArgumentException.class, () -> {
-			branch.addSortCode(SORT_CODE);
-		});
-		assertEquals(1, branch.getSortCodes().size());
 	}
 
 }

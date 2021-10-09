@@ -1,25 +1,30 @@
 package com.brailsoft.bank.account.model;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
 public class Branch implements Comparable<Branch> {
 	private ObjectProperty<Address> address = new SimpleObjectProperty<>(this, "address", null);
-	private ObservableList<SortCode> sortCodes = FXCollections.observableArrayList();
-	private String comma = "";
+	private ObjectProperty<SortCode> sortcode = new SimpleObjectProperty<>(this, "sortcode", null);
+	private StringProperty bankname = new SimpleStringProperty(this, "bankname", null);
 
-	public Branch(Address address) {
+	public Branch(Address address, SortCode sortcode, String bankname) {
 		if (address == null) {
 			throw new IllegalArgumentException("Branch: address must be specified");
 		}
+		if (sortcode == null) {
+			throw new IllegalArgumentException("Branch: sort code must be specified");
+		}
+		if (bankname == null || bankname.isBlank() || bankname.isEmpty()) {
+			throw new IllegalArgumentException("Branch: bank name must be specified");
+		}
 		this.address.set(new Address(address));
+		this.sortcode.set(sortcode);
+		this.bankname.set(bankname);
 	}
 
 	public Branch(Branch that) {
@@ -27,9 +32,16 @@ public class Branch implements Comparable<Branch> {
 			throw new IllegalArgumentException("Branch: branch must be specified");
 		}
 		this.address.set(new Address(that.address.get()));
-		that.sortCodes.stream().forEach(sortcode -> {
-			this.sortCodes.add(new SortCode(sortcode));
-		});
+		this.sortcode.set(that.sortcode.get());
+		this.bankname.set(that.bankname.get());
+	}
+
+	public StringProperty banknameProperty() {
+		return bankname;
+	}
+
+	public String getBankname() {
+		return bankname.get();
 	}
 
 	public ObjectProperty<Address> addressProperty() {
@@ -40,32 +52,17 @@ public class Branch implements Comparable<Branch> {
 		return new Address(address.get());
 	}
 
-	public List<SortCode> getSortCodes() {
-		List<SortCode> copyList = new ArrayList<>();
-		sortCodes.stream().forEach(sortcode -> {
-			copyList.add(new SortCode(sortcode));
-		});
-		Collections.sort(copyList);
-		return copyList;
+	public ObjectProperty<SortCode> sortcodeProperty() {
+		return sortcode;
 	}
 
-	public void addSortCode(SortCode sortcode) {
-		if (sortcode == null) {
-			throw new IllegalArgumentException("Branch: sortcode must be specified");
-		}
-		if (sortCodes.contains(sortcode)) {
-			throw new IllegalArgumentException("Branch: sortcode already known");
-		}
-		sortCodes.add(new SortCode(sortcode));
-	}
-
-	public void clear() {
-		sortCodes.clear();
+	public SortCode getSortCode() {
+		return new SortCode(sortcode.get());
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(address.get(), sortCodes);
+		return Objects.hash(address.get(), sortcode);
 	}
 
 	@Override
@@ -77,29 +74,24 @@ public class Branch implements Comparable<Branch> {
 		if (getClass() != obj.getClass())
 			return false;
 		Branch that = (Branch) obj;
-		return Objects.equals(address.get(), that.address.get()) && Objects.equals(sortCodes, that.sortCodes);
+		return Objects.equals(address.get(), that.address.get()) && Objects.equals(sortcode.get(), that.sortcode.get());
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("Branch at ").append(address.get().toString());
-		if (sortCodes.size() == 0) {
-			builder.append(" has no sort codes");
-		} else {
-			comma = "";
-			builder.append(sortCodes.size() == 1 ? " and has sort code: " : " and has sort codes: ");
-			sortCodes.stream().forEach(sortcode -> {
-				builder.append(comma).append(sortcode.toString());
-				comma = ", ";
-			});
-		}
+		builder.append(" with sort code ").append(sortcode.get().toString());
 		return builder.toString();
 	}
 
 	@Override
 	public int compareTo(Branch that) {
-		return this.address.get().toString().compareTo(that.address.get().toString());
+		int retCode = this.sortcode.get().compareTo(that.sortcode.get());
+		if (retCode == 0) {
+			retCode = this.address.get().toString().compareTo(that.address.get().toString());
+		}
+		return retCode;
 	}
 
 }

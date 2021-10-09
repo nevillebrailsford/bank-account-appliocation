@@ -79,6 +79,11 @@ class AccountTest {
 	}
 
 	@Test
+	void testCompareInDifferctSortCodes() {
+		assertTrue(account.compareTo(new Account(CURRENT, ACCOUNT1, NUMBER1, DIFF_SORT_CODE)) > 0);
+	}
+
+	@Test
 	void testMissingAccountType() {
 		assertThrows(IllegalArgumentException.class, () -> {
 			new Account(null, ACCOUNT1, NUMBER1, SORT_CODE);
@@ -159,13 +164,6 @@ class AccountTest {
 	void testMissingAccount() {
 		assertThrows(IllegalArgumentException.class, () -> {
 			new Account(null);
-		});
-	}
-
-	@Test
-	void testCompareInDifferctSortCodes() {
-		assertThrows(IllegalStateException.class, () -> {
-			account.compareTo(new Account(CURRENT, ACCOUNT1, NUMBER1, DIFF_SORT_CODE));
 		});
 	}
 
