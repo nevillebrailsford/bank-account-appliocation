@@ -26,7 +26,7 @@ class BranchTest {
 	private static final Address ADDRESS = new Address(POST_CODE, new String[] { LINE1, LINE2, LINE3, LINE4 });
 	private static final Address HIGHER_ADDRESS = new Address(POST_CODE,
 			new String[] { LINE1_HIGHER, LINE2, LINE3, LINE4 });
-	private static final String SORT_CODE_STRING = "Branch at 98 The Street, The Town, The County, Country CW3 9SR with sort code 55-55-55";
+	private static final String SORT_CODE_STRING = "Branch at 98 The Street, The Town, The County, Country CW3 9SR with sort code 55-55-55 for bank bankname";
 
 	Branch branch = new Branch(ADDRESS, SORT_CODE, BANK_NAME);
 

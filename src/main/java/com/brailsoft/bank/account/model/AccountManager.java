@@ -82,7 +82,7 @@ public class AccountManager {
 		if (account == null) {
 			throw new IllegalArgumentException("AccountManager: account was null");
 		}
-		List<Account> accountsForSortCode = accounts.get(account.getSortCode());
+		ObservableList<Account> accountsForSortCode = accounts.get(account.getSortCode());
 		if (accountsForSortCode == null || !accountsForSortCode.contains(account)) {
 			throw new IllegalStateException("AccountManager: account not found");
 		} else {
@@ -104,6 +104,9 @@ public class AccountManager {
 	}
 
 	public synchronized List<Account> getAccountsForSortCode(SortCode sortCode) {
+		if (sortCode == null) {
+			throw new IllegalArgumentException("AccountManager: sortCode was null");
+		}
 		List<Account> accountList = new ArrayList<>();
 		List<Account> accountsForSortCode = accounts.get(sortCode);
 		if (accountsForSortCode != null) {
@@ -115,7 +118,7 @@ public class AccountManager {
 
 	public synchronized List<Account> getAllAccounts() {
 		List<Account> accountList = new ArrayList<>();
-		getSortCodes().stream().forEachOrdered(sortCode -> {
+		getSortCodes().stream().forEach(sortCode -> {
 			accountList.addAll(getAccountsForSortCode(sortCode));
 		});
 		Collections.sort(accountList);

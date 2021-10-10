@@ -195,6 +195,13 @@ class AccountManagerTest {
 	}
 
 	@Test
+	void testMissingSortCode() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			accountManager.getAccountsForSortCode(null);
+		});
+	}
+
+	@Test
 	void testMissingAddListListener() {
 		assertThrows(IllegalStateException.class, () -> {
 			accountManager.removeListListener();

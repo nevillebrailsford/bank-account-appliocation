@@ -74,7 +74,8 @@ public class Branch implements Comparable<Branch> {
 		if (getClass() != obj.getClass())
 			return false;
 		Branch that = (Branch) obj;
-		return Objects.equals(address.get(), that.address.get()) && Objects.equals(sortcode.get(), that.sortcode.get());
+		return Objects.equals(address.get(), that.address.get()) && Objects.equals(sortcode.get(), that.sortcode.get())
+				&& Objects.equals(bankname.get(), that.bankname.get());
 	}
 
 	@Override
@@ -82,14 +83,18 @@ public class Branch implements Comparable<Branch> {
 		StringBuilder builder = new StringBuilder();
 		builder.append("Branch at ").append(address.get().toString());
 		builder.append(" with sort code ").append(sortcode.get().toString());
+		builder.append(" for bank ").append(bankname.get());
 		return builder.toString();
 	}
 
 	@Override
 	public int compareTo(Branch that) {
-		int retCode = this.sortcode.get().compareTo(that.sortcode.get());
+		int retCode = this.bankname.get().compareTo(that.bankname.get());
 		if (retCode == 0) {
-			retCode = this.address.get().toString().compareTo(that.address.get().toString());
+			retCode = this.sortcode.get().compareTo(that.sortcode.get());
+			if (retCode == 0) {
+				retCode = this.address.get().toString().compareTo(that.address.get().toString());
+			}
 		}
 		return retCode;
 	}
