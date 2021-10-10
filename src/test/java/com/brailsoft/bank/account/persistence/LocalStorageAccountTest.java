@@ -36,6 +36,7 @@ class LocalStorageAccountTest {
 
 	@BeforeEach
 	void setUp() throws Exception {
+		Files.deleteIfExists(Paths.get(getTestDirectory(), NEW_FILE));
 	}
 
 	@AfterEach
@@ -128,7 +129,7 @@ class LocalStorageAccountTest {
 				throw new IOException("Exception occurred: " + e.getMessage());
 			}
 		});
-		assertEquals("Exception occurred: LocalStorageAccount: tab not found: </type>", exception.getMessage());
+		assertEquals("Exception occurred: LocalStorage: tab not found: </type>", exception.getMessage());
 	}
 
 	private String getTestDirectory() {
