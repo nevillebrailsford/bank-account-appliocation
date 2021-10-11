@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -46,19 +47,19 @@ class LocalStorageAccountTest {
 	}
 
 	@Test
-	void testGetAccountData() throws IOException {
+	void testGetAccountData() {
 		assertEquals(0, manager.getAllAccounts().size());
 		String name = createTestFileName(TEST_FILE);
 		try (BufferedReader inputFile = new BufferedReader(new FileReader(name))) {
-			LocalStorageAccount.clearAndLoadManagerWithArchvedData(inputFile);
+			LocalStorageAccount.clearAndLoadManagerWithArchivedData(inputFile);
 		} catch (Exception e) {
-			throw new IOException("Exception occurred: " + e.getMessage());
+			fail("Exception occurred: " + e.getMessage());
 		}
 		assertEquals(1, manager.getAllAccounts().size());
 	}
 
 	@Test
-	void testUpdateAccountData() throws IOException {
+	void testUpdateAccountData() {
 		assertEquals(0, manager.getAllAccounts().size());
 		manager.add(new Account(AccountType.CURRENT, "account1", "87654321", new SortCode("44-44-44")));
 		assertEquals(1, manager.getAllAccounts().size());
@@ -67,7 +68,7 @@ class LocalStorageAccountTest {
 				new BufferedWriter(new FileWriter(createTestFileName(NEW_FILE))))) {
 			LocalStorageAccount.archiveDataFromManager(archiveFile);
 		} catch (Exception e) {
-			throw new IOException("Exception occurred: " + e.getMessage());
+			fail("Exception occurred: " + e.getMessage());
 		}
 		assertTrue((Files.exists(Paths.get(getTestDirectory(), NEW_FILE), LinkOption.NOFOLLOW_LINKS)));
 		int numberOfRecords = 0;
@@ -77,13 +78,13 @@ class LocalStorageAccountTest {
 				numberOfRecords++;
 			} while (inputFile.ready());
 		} catch (Exception e) {
-			throw new IOException("Exception occurred: " + e.getMessage());
+			fail("Exception occurred: " + e.getMessage());
 		}
 		assertEquals(1, numberOfRecords);
 	}
 
 	@Test
-	void testReadAndWrite() throws IOException {
+	void testReadAndWrite() {
 		assertEquals(0, manager.getAllAccounts().size());
 		manager.add(new Account(AccountType.CURRENT, "account1", "87654321", new SortCode("44-44-44")));
 		assertEquals(1, manager.getAllAccounts().size());
@@ -92,14 +93,14 @@ class LocalStorageAccountTest {
 				new BufferedWriter(new FileWriter(createTestFileName(NEW_FILE))))) {
 			LocalStorageAccount.archiveDataFromManager(archiveFile);
 		} catch (Exception e) {
-			throw new IOException("Exception occurred: " + e.getMessage());
+			fail("Exception occurred: " + e.getMessage());
 		}
 		assertTrue((Files.exists(Paths.get(getTestDirectory(), NEW_FILE), LinkOption.NOFOLLOW_LINKS)));
 		String name = createTestFileName(NEW_FILE);
 		try (BufferedReader inputFile = new BufferedReader(new FileReader(name))) {
-			LocalStorageAccount.clearAndLoadManagerWithArchvedData(inputFile);
+			LocalStorageAccount.clearAndLoadManagerWithArchivedData(inputFile);
 		} catch (Exception e) {
-			throw new IOException("Exception occurred: " + e.getMessage());
+			fail("Exception occurred: " + e.getMessage());
 		}
 		assertEquals(1, manager.getAllAccounts().size());
 	}
@@ -110,7 +111,7 @@ class LocalStorageAccountTest {
 		IOException exception = assertThrows(IOException.class, () -> {
 			String name = createTestFileName(CORRUPT_ACCOUNT_TAB);
 			try (BufferedReader inputFile = new BufferedReader(new FileReader(name))) {
-				LocalStorageAccount.clearAndLoadManagerWithArchvedData(inputFile);
+				LocalStorageAccount.clearAndLoadManagerWithArchivedData(inputFile);
 			} catch (Exception e) {
 				throw new IOException("Exception occurred: " + e.getMessage());
 			}
@@ -124,12 +125,12 @@ class LocalStorageAccountTest {
 		IOException exception = assertThrows(IOException.class, () -> {
 			String name = createTestFileName(CORRUPT_TYPE_TAB);
 			try (BufferedReader inputFile = new BufferedReader(new FileReader(name))) {
-				LocalStorageAccount.clearAndLoadManagerWithArchvedData(inputFile);
+				LocalStorageAccount.clearAndLoadManagerWithArchivedData(inputFile);
 			} catch (Exception e) {
 				throw new IOException("Exception occurred: " + e.getMessage());
 			}
 		});
-		assertEquals("Exception occurred: LocalStorage: tab not found: </type>", exception.getMessage());
+		assertEquals("Exception occurred: LocalStorageBase: tab not found: </type>", exception.getMessage());
 	}
 
 	private String getTestDirectory() {

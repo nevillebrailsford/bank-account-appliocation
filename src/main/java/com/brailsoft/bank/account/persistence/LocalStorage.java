@@ -1,53 +1,58 @@
 package com.brailsoft.bank.account.persistence;
 
-public abstract class LocalStorage {
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 
-	static final String SORTCODE_TAB = "sortcode";
-	static final String BANKNAME_TAB = "bankname";
-	static final String POSTCODE_TAB = "postcode";
-	static final String LINE_TAB = "line";
-	static final String LINE_COUNT_TAB = "linecount";
-	static final String ADDRESS_KEY_WORD = "Address";
-	static final String BRANCH_KEY_WORD = "Branch";
+public class LocalStorage {
+	private static LocalStorage instance = null;
 
-	static final String NUMBER_TAB = "number";
-	static final String NAME_TAB = "name";
-	static final String TYPE_TAB = "type";
-	static final String ACCOUNT_KEY_WORD = "Account";
+	private static final String ACCOUNT_FILE = "account.dat";
+	private static final String BRANCH_FILE = "branch.dat";
+	private File directory = null;
 
-	static String createBeginningTab(String tab) {
-		return "<" + tab + ">";
-	}
-
-	static String createEndingTab(String tab) {
-		return "</" + tab + ">";
-	}
-
-	static String extractTab(String s, String tab) {
-		if (tab == null || tab.isBlank() || tab.isEmpty()) {
-			throw new IllegalArgumentException("LocalStorage: corrupt request");
+	public synchronized static LocalStorage getInstance(File directory) {
+		if (instance == null) {
+			if (directory == null) {
+				throw new IllegalArgumentException("LocalStorage: directory is missing");
+			}
+			instance = new LocalStorage();
+			instance.updateDirectory(directory);
 		}
-		String tab1 = createBeginningTab(tab);
-		String tab2 = createEndingTab(tab);
-		String tabData;
-		int tabStart = s.indexOf(tab1);
-		int tabEnd = s.indexOf(tab2);
-		if (tabStart < 0) {
-			throw new IllegalArgumentException("LocalStorage: tab not found: " + tab1);
-		}
-		if (tabEnd < 0) {
-			throw new IllegalArgumentException("LocalStorage: tab not found: " + tab2);
-		}
-		tabData = s.substring(tabStart + tab1.length(), tabEnd);
-		return tabData;
+		return instance;
 	}
 
-	static String formatArchiveString(String tab, String sortcode) {
-		StringBuilder builder = new StringBuilder();
-		builder.append(createBeginningTab(tab));
-		builder.append(sortcode);
-		builder.append(createEndingTab(tab));
-		return builder.toString();
+	private LocalStorage() {
 	}
 
+	private void updateDirectory(File directory) {
+		if (this.directory == null || !this.directory.getAbsolutePath().equals(directory.getAbsolutePath())) {
+			this.directory = directory;
+			if (!directory.exists()) {
+				directory.mkdirs();
+			}
+		}
+	}
+
+	public void clearAndLoadManagerWithArchivedData() throws IOException {
+		File branchFile = new File(directory, BRANCH_FILE);
+		if (!branchFile.exists()) {
+			throw new IOException("Branch file not found");
+		}
+		File accountFile = new File(directory, ACCOUNT_FILE);
+		if (!accountFile.exists()) {
+			throw new IOException("File storage: Account file not found");
+		}
+		try (BufferedReader archiveFile = new BufferedReader(new FileReader(branchFile))) {
+			LocalStorageBranch.clearAndLoadManagerWithArchivedData(archiveFile);
+		} catch (Exception e) {
+			throw new IOException("FileStorage: Exception occurred: " + e.getMessage());
+		}
+		try (BufferedReader archiveFile = new BufferedReader(new FileReader(accountFile))) {
+			LocalStorageAccount.clearAndLoadManagerWithArchivedData(archiveFile);
+		} catch (Exception e) {
+			throw new IOException("FileStorage: Exception occurred: " + e.getMessage());
+		}
+	}
 }

@@ -10,13 +10,13 @@ import com.brailsoft.bank.account.model.BranchManager;
 import com.brailsoft.bank.account.model.PostCode;
 import com.brailsoft.bank.account.model.SortCode;
 
-public class LocalStorageBranch extends LocalStorage {
+public class LocalStorageBranch extends LocalStorageBase {
 
 	private static BranchManager branchManager = BranchManager.getInstance();
 
-	public static void clearAndLoadManagerWithArchivedData(BufferedReader inputFile) throws IOException {
+	public static void clearAndLoadManagerWithArchivedData(BufferedReader archiveFile) throws IOException {
 		branchManager.clear();
-		loadManagerWirhArchivedData(inputFile);
+		loadManagerWirhArchivedData(archiveFile);
 	}
 
 	public static void archiveDataFromManager(PrintWriter archiveFile) throws IOException {
@@ -25,10 +25,10 @@ public class LocalStorageBranch extends LocalStorage {
 		});
 	}
 
-	private static void loadManagerWirhArchivedData(BufferedReader inputFile) throws IOException {
+	private static void loadManagerWirhArchivedData(BufferedReader archiveFile) throws IOException {
 		do {
-			branchManager.add(buildBranchFromEntry(inputFile.readLine()));
-		} while (inputFile.ready());
+			branchManager.add(buildBranchFromEntry(archiveFile.readLine()));
+		} while (archiveFile.ready());
 	}
 
 	private static Branch buildBranchFromEntry(String s) throws IOException {

@@ -9,7 +9,7 @@ import com.brailsoft.bank.account.model.AccountManager;
 import com.brailsoft.bank.account.model.AccountType;
 import com.brailsoft.bank.account.model.SortCode;
 
-public class LocalStorageAccount extends LocalStorage {
+public class LocalStorageAccount extends LocalStorageBase {
 	private static final String SORTCODE_TAB = "sortcode";
 	private static final String NUMBER_TAB = "number";
 	private static final String NAME_TAB = "name";
@@ -18,9 +18,9 @@ public class LocalStorageAccount extends LocalStorage {
 
 	private static AccountManager accountManager = AccountManager.getInstance();
 
-	public static void clearAndLoadManagerWithArchvedData(BufferedReader inputFile) throws IOException {
+	public static void clearAndLoadManagerWithArchivedData(BufferedReader archiveFile) throws IOException {
 		accountManager.clear();
-		loadManagerWithArchivedData(inputFile);
+		loadManagerWithArchivedData(archiveFile);
 	}
 
 	public static void archiveDataFromManager(PrintWriter archiveFile) throws IOException {
@@ -29,10 +29,10 @@ public class LocalStorageAccount extends LocalStorage {
 		});
 	}
 
-	private static void loadManagerWithArchivedData(BufferedReader inputFile) throws IOException {
+	private static void loadManagerWithArchivedData(BufferedReader archiveFile) throws IOException {
 		do {
-			accountManager.add(buildAccountFromEntry(inputFile.readLine()));
-		} while (inputFile.ready());
+			accountManager.add(buildAccountFromEntry(archiveFile.readLine()));
+		} while (archiveFile.ready());
 	}
 
 	private static Account buildAccountFromEntry(String s) throws IOException {

@@ -2,7 +2,9 @@ package com.brailsoft.bank.account.persistence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -29,8 +31,8 @@ class LocalStorageBranchTest {
 
 	private static final String TEST_FILE = "branches.dat";
 	private static final String NEW_FILE = "newbranches.dat";
-	private static final String CORRUPT_ACCOUNT_TAB = "corruptBranch.dat";
-	private static final String CORRUPT_TYPE_TAB = "corruptBranchTab.dat";
+	private static final String CORRUPT_BRANCH_TAB = "corruptBranch.dat";
+	private static final String CORRUPT_SORTCODE_TAB = "corruptSortCode.dat";
 	private static final String FILE_CONTENTS = "<Branch><sortcode>55-55-55</sortcode><bankname>bankname</bankname><Address><postcode>CW3 9ST</postcode><linecount>4</linecount><line>99 The Street</line><line>The Town</line><line>The County</line><line>Country</line></Address></Branch>";
 
 	private static final String BANK_NAME = "bankname";
@@ -58,19 +60,19 @@ class LocalStorageBranchTest {
 	}
 
 	@Test
-	void testClearAndLoadManagerWithArchivedData() throws IOException {
+	void testClearAndLoadManagerWithArchivedData() {
 		assertEquals(0, manager.getAllBranches().size());
 		String name = createTestFileName(TEST_FILE);
 		try (BufferedReader inputFile = new BufferedReader(new FileReader(name))) {
 			LocalStorageBranch.clearAndLoadManagerWithArchivedData(inputFile);
 		} catch (Exception e) {
-			throw new IOException("Exception occurred: " + e.getMessage());
+			fail("Exception occurred: " + e.getMessage());
 		}
 		assertEquals(1, manager.getAllBranches().size());
 	}
 
 	@Test
-	void testArchiveDataFromManager() throws IOException {
+	void testArchiveDataFromManager() {
 		assertEquals(0, manager.getAllBranches().size());
 		manager.add(new Branch(address, sortcode, BANK_NAME));
 		assertEquals(1, manager.getAllBranches().size());
@@ -79,7 +81,7 @@ class LocalStorageBranchTest {
 				new BufferedWriter(new FileWriter(createTestFileName(NEW_FILE))))) {
 			LocalStorageBranch.archiveDataFromManager(archiveFile);
 		} catch (Exception e) {
-			throw new IOException("Exception occurred: " + e.getMessage());
+			fail("Exception occurred: " + e.getMessage());
 		}
 		assertTrue((Files.exists(Paths.get(getTestDirectory(), NEW_FILE), LinkOption.NOFOLLOW_LINKS)));
 		int numberOfRecords = 0;
@@ -89,9 +91,38 @@ class LocalStorageBranchTest {
 				numberOfRecords++;
 			} while (inputFile.ready());
 		} catch (Exception e) {
-			throw new IOException("Exception occurred: " + e.getMessage());
+			fail("Exception occurred: " + e.getMessage());
 		}
 		assertEquals(1, numberOfRecords);
+	}
+
+	@Test
+	void testCorruptBranchData() {
+		assertEquals(0, manager.getAllBranches().size());
+		IOException exception = assertThrows(IOException.class, () -> {
+			String name = createTestFileName(CORRUPT_BRANCH_TAB);
+			try (BufferedReader inputFile = new BufferedReader(new FileReader(name))) {
+				LocalStorageBranch.clearAndLoadManagerWithArchivedData(inputFile);
+			} catch (Exception e) {
+				throw new IOException("Exception occurred: " + e.getMessage());
+			}
+		});
+		assertEquals("Exception occurred: LocalStorageAccount: Branch missing from entry", exception.getMessage());
+
+	}
+
+	@Test
+	void testGetCorruptTypeData() {
+		assertEquals(0, manager.getAllBranches().size());
+		IOException exception = assertThrows(IOException.class, () -> {
+			String name = createTestFileName(CORRUPT_SORTCODE_TAB);
+			try (BufferedReader inputFile = new BufferedReader(new FileReader(name))) {
+				LocalStorageBranch.clearAndLoadManagerWithArchivedData(inputFile);
+			} catch (Exception e) {
+				throw new IOException("Exception occurred: " + e.getMessage());
+			}
+		});
+		assertEquals("Exception occurred: LocalStorageBase: tab not found: </sortcode>", exception.getMessage());
 	}
 
 	private String getTestDirectory() {
