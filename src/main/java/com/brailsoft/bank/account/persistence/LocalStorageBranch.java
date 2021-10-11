@@ -69,8 +69,10 @@ public class LocalStorageBranch extends LocalStorageBase {
 		String linecount = extractTab(s, LINE_COUNT_TAB);
 		int noOfLines = Integer.valueOf(linecount).intValue();
 		String[] linesOfAddress = new String[noOfLines];
+		int offset = s.indexOf(createEndingTab(LINE_COUNT_TAB)) + createEndingTab(LINE_COUNT_TAB).length();
 		for (int i = 0; i < noOfLines; i++) {
-			linesOfAddress[i] = extractTab(s, LINE_TAB);
+			linesOfAddress[i] = extractTab(s.substring(offset), LINE_TAB);
+			offset += linesOfAddress[i].length() + (2 * LINE_TAB.length() + 5);
 		}
 		return linesOfAddress;
 	}
