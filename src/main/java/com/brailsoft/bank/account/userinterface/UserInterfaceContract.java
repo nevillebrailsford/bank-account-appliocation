@@ -4,13 +4,29 @@ import com.brailsoft.bank.account.model.Account;
 import com.brailsoft.bank.account.model.Branch;
 
 public interface UserInterfaceContract {
-	interface View {
+	public interface View {
 
 	}
 
-	interface EventListener {
-		public void onBranchAltered(Branch... branch);
+	public interface EventListener {
+		public void onBranchAltered(EventBranchAltered branchAltered);
 
-		public void onAccountAltered(Account... account);
+		public void onAccountAltered(EventAccountAltered accountAltered);
+	}
+
+	public interface EventBranchAltered {
+		public Branch getBranch();
+
+		public boolean wasAdded();
+
+		public boolean wasRemoved();
+	}
+
+	public interface EventAccountAltered {
+		public Account getAccount();
+
+		public boolean wasAdded();
+
+		public boolean wasRemoved();
 	}
 }

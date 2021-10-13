@@ -46,6 +46,7 @@ public class LocalStorage {
 	public void clearAndLoadManagerWithArchivedData() throws IOException {
 		File branchFile = new File(directory, BRANCH_FILE);
 		File accountFile = new File(directory, ACCOUNT_FILE);
+		System.out.println(branchFile);
 		if (!branchFile.exists()) {
 			throw new IOException("Branch file not found");
 		}
@@ -55,6 +56,7 @@ public class LocalStorage {
 		try (BufferedReader archiveFile = new BufferedReader(new FileReader(branchFile))) {
 			LocalStorageBranch.clearAndLoadManagerWithArchivedData(archiveFile);
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new IOException("FileStorage: Exception occurred: " + e.getMessage());
 		}
 		try (BufferedReader archiveFile = new BufferedReader(new FileReader(accountFile))) {
