@@ -31,7 +31,10 @@ public class LocalStorageAccount extends LocalStorageBase {
 
 	private static void loadManagerWithArchivedData(BufferedReader archiveFile) throws IOException {
 		do {
-			accountManager.add(buildAccountFromEntry(archiveFile.readLine()));
+			String s = archiveFile.readLine();
+			if (!(s == null || s.isBlank() || s.isEmpty())) {
+				accountManager.add(buildAccountFromEntry(s));
+			}
 		} while (archiveFile.ready());
 	}
 

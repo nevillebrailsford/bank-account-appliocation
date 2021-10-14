@@ -88,18 +88,19 @@ class LocalStorageAccountTest {
 		assertEquals(0, manager.getAllAccounts().size());
 		manager.add(new Account(AccountType.CURRENT, "account1", "87654321", new SortCode("44-44-44")));
 		assertEquals(1, manager.getAllAccounts().size());
-		assertFalse((Files.exists(Paths.get(getTestDirectory(), NEW_FILE), LinkOption.NOFOLLOW_LINKS)));
+		assertFalse((Files.exists(Paths.get(getTestDirectory(), NEW_FILE))));
 		try (PrintWriter archiveFile = new PrintWriter(
 				new BufferedWriter(new FileWriter(createTestFileName(NEW_FILE))))) {
 			LocalStorageAccount.archiveDataFromManager(archiveFile);
 		} catch (Exception e) {
 			fail("Exception occurred: " + e.getMessage());
 		}
-		assertTrue((Files.exists(Paths.get(getTestDirectory(), NEW_FILE), LinkOption.NOFOLLOW_LINKS)));
+		assertTrue((Files.exists(Paths.get(getTestDirectory(), NEW_FILE))));
 		String name = createTestFileName(NEW_FILE);
 		try (BufferedReader inputFile = new BufferedReader(new FileReader(name))) {
 			LocalStorageAccount.clearAndLoadManagerWithArchivedData(inputFile);
 		} catch (Exception e) {
+			e.printStackTrace();
 			fail("Exception occurred: " + e.getMessage());
 		}
 		assertEquals(1, manager.getAllAccounts().size());

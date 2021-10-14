@@ -27,7 +27,10 @@ public class LocalStorageBranch extends LocalStorageBase {
 
 	private static void loadManagerWirhArchivedData(BufferedReader archiveFile) throws IOException {
 		do {
-			branchManager.add(buildBranchFromEntry(archiveFile.readLine()));
+			String s = archiveFile.readLine();
+			if (!(s == null || s.isBlank() || s.isEmpty())) {
+				branchManager.add(buildBranchFromEntry(s));
+			}
 		} while (archiveFile.ready());
 	}
 
