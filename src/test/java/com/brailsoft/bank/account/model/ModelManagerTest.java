@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -27,9 +29,10 @@ class ModelManagerTest {
 
 	@AfterAll
 	static void tearDownAfterClass() throws Exception {
-//		Files.deleteIfExists(Paths.get(directory.getAbsolutePath(), "account.dat"));
-//		Files.deleteIfExists(Paths.get(directory.getAbsolutePath(), "branch.dat"));
-//		Files.deleteIfExists(Paths.get(directory.getAbsolutePath()));
+		Files.deleteIfExists(Paths.get(directory.getAbsolutePath(), "account.dat"));
+		Files.deleteIfExists(Paths.get(directory.getAbsolutePath(), "branch.dat"));
+		Files.deleteIfExists(Paths.get(directory.getAbsolutePath()));
+		ModelManager.getInstance().removeListeners();
 	}
 
 	@BeforeEach
@@ -69,7 +72,9 @@ class ModelManagerTest {
 
 	@Test
 	void testAddAccount() {
-		fail("Not yet implemented");
+		assertEquals(4, AccountManager.getInstance().getAllAccounts().size());
+		modelManager.addAccount(new Account(AccountType.CURRENT, "account1", "12345678", new SortCode("11-11-11")));
+		assertEquals(5, AccountManager.getInstance().getAllAccounts().size());
 	}
 
 	@Test
@@ -79,7 +84,9 @@ class ModelManagerTest {
 
 	@Test
 	void testRemoveAccount() {
-		fail("Not yet implemented");
+		assertEquals(4, AccountManager.getInstance().getAllAccounts().size());
+		modelManager.removeAccount(new Account(AccountType.CURRENT, "account1", "12345678", new SortCode("55-55-55")));
+		assertEquals(3, AccountManager.getInstance().getAllAccounts().size());
 	}
 
 	@Test

@@ -15,6 +15,9 @@ public class ModelManager {
 	private final static BranchManager branchManager = BranchManager.getInstance();
 	private LocalStorage localStorage;
 	private UserInterfaceContract.EventListener listener;
+	private BranchMapListener branchMapListener = new BranchMapListener();
+	private AccountListListener accountListListener = new AccountListListener();
+	private AccountMapListener accountMapListener = new AccountMapListener();
 
 	private static ModelManager instance = null;
 
@@ -22,9 +25,9 @@ public class ModelManager {
 		if (instance == null) {
 			instance = new ModelManager();
 			instance.localStorage = LocalStorage.getInstance(directory);
-			branchManager.addMapListener(instance.new BranchMapListener());
-			accountManager.addListListener(instance.new AccountListListener());
-			accountManager.addMapListener(instance.new AccountMapListener());
+			branchManager.addMapListener(instance.branchMapListener);
+			accountManager.addListListener(instance.accountListListener);
+			accountManager.addMapListener(instance.accountMapListener);
 		}
 		return instance;
 	}
@@ -35,6 +38,12 @@ public class ModelManager {
 	public synchronized void clear() {
 		accountManager.clear();
 		branchManager.clear();
+	}
+
+	public void removeListeners() {
+		branchManager.removeMapListener(branchMapListener);
+		accountManager.removeListListener();
+		accountManager.removeMapListener(accountMapListener);
 	}
 
 	public File getDirectory() {
@@ -102,7 +111,11 @@ public class ModelManager {
 		@Override
 		public void onChanged(
 				javafx.collections.MapChangeListener.Change<? extends SortCode, ? extends List<Account>> change) {
-			// System.out.println(change);
+			try {
+				ModelManager.this.saveModel();
+			} catch (IOException e) {
+				throw new IllegalStateException("ModelManager: IO exception has occurred : " + e.getMessage());
+			}
 		}
 	}
 
@@ -112,11 +125,13 @@ public class ModelManager {
 		public void onChanged(javafx.collections.ListChangeListener.Change<? extends Account> change) {
 			AccountAlteredEvent event;
 			change.next();
-			if (change.wasAdded()) {
-				event = new AccountAlteredEvent(new Account(change.getAddedSubList().get(0)), true);
-			} else {
-				event = new AccountAlteredEvent(new Account(change.getAddedSubList().get(0)), false);
-			}
+			do {
+				if (change.wasAdded()) {
+					event = new AccountAlteredEvent(new Account(change.getAddedSubList().get(0)), true);
+				} else {
+					event = new AccountAlteredEvent(new Account(change.getAddedSubList().get(0)), false);
+				}
+			} while (change.next());
 			if (ModelManager.this.listener != null) {
 				ModelManager.this.listener.onAccountAltered(event);
 			}
