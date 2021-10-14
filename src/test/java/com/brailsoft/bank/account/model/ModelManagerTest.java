@@ -3,7 +3,6 @@ package com.brailsoft.bank.account.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,12 +15,32 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.brailsoft.bank.account.userinterface.UserInterfaceContract;
+import com.brailsoft.bank.account.userinterface.UserInterfaceContract.EventAccountAltered;
+import com.brailsoft.bank.account.userinterface.UserInterfaceContract.EventBranchAltered;
+
 class ModelManagerTest {
 
 	static final String DIRECTORY_TEST = "bank.test";
 	static File directory = new File(System.getProperty("user.home"), DIRECTORY_TEST);
 
 	private ModelManager modelManager = ModelManager.getInstance(directory);
+
+	private UserInterfaceContract.EventListener listener = new UserInterfaceContract.EventListener() {
+
+		@Override
+		public void onBranchAltered(EventBranchAltered branchAltered) {
+			assertTrue(branchAltered.wasAdded());
+			assertEquals(buildNewBranch(), branchAltered.getBranch());
+		}
+
+		@Override
+		public void onAccountAltered(EventAccountAltered accountAltered) {
+			assertTrue(accountAltered.wasAdded());
+			assertEquals(buildNewAccount(), accountAltered.getAccount());
+		}
+
+	};
 
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
@@ -43,6 +62,7 @@ class ModelManagerTest {
 
 	@AfterEach
 	void tearDown() throws Exception {
+		modelManager.removeListener(listener);
 		modelManager.clear();
 	}
 
@@ -57,7 +77,9 @@ class ModelManagerTest {
 
 	@Test
 	void testAddListener() {
-		fail("Not yet implemented");
+		modelManager.addListener(listener);
+		modelManager.addAccount(buildNewAccount());
+		modelManager.addBranch(buildNewBranch());
 	}
 
 	@Test
@@ -73,35 +95,67 @@ class ModelManagerTest {
 	@Test
 	void testAddAccount() {
 		assertEquals(4, AccountManager.getInstance().getAllAccounts().size());
-		modelManager.addAccount(new Account(AccountType.CURRENT, "account1", "12345678", new SortCode("11-11-11")));
+		modelManager.addAccount(buildNewAccount());
 		assertEquals(5, AccountManager.getInstance().getAllAccounts().size());
 	}
 
 	@Test
 	void testChangeAccount() {
-		fail("Not yet implemented");
+		assertEquals(4, AccountManager.getInstance().getAllAccounts().size());
+		modelManager.changeAccount(buildExistingAccount(), buildNewAccount());
+		assertEquals(4, AccountManager.getInstance().getAllAccounts().size());
 	}
 
 	@Test
 	void testRemoveAccount() {
 		assertEquals(4, AccountManager.getInstance().getAllAccounts().size());
-		modelManager.removeAccount(new Account(AccountType.CURRENT, "account1", "12345678", new SortCode("55-55-55")));
+		modelManager.removeAccount(buildExistingAccount());
 		assertEquals(3, AccountManager.getInstance().getAllAccounts().size());
 	}
 
 	@Test
 	void testAddBranch() {
-		fail("Not yet implemented");
+		assertEquals(2, BranchManager.getInstance().getAllBranches().size());
+		modelManager.addBranch(buildNewBranch());
+		assertEquals(3, BranchManager.getInstance().getAllBranches().size());
 	}
 
 	@Test
 	void testChangeBranch() {
-		fail("Not yet implemented");
+		assertEquals(2, BranchManager.getInstance().getAllBranches().size());
+		modelManager.changeBranch(buildExistingBranch(), buildNewBranch());
+		assertEquals(2, BranchManager.getInstance().getAllBranches().size());
 	}
 
 	@Test
 	void testRemoveBranch() {
-		fail("Not yet implemented");
+		assertEquals(2, BranchManager.getInstance().getAllBranches().size());
+		modelManager.removeBranch(buildExistingBranch());
+		assertEquals(1, BranchManager.getInstance().getAllBranches().size());
+	}
+
+	private Account buildNewAccount() {
+		return new Account(AccountType.CURRENT, "account1", "12345678", new SortCode("11-11-11"));
+	}
+
+	private Account buildExistingAccount() {
+		return new Account(AccountType.CURRENT, "account1", "12345678", new SortCode("55-55-55"));
+	}
+
+	private Branch buildNewBranch() {
+		SortCode sortcode = new SortCode("11-11-11");
+		PostCode postcode = new PostCode("WC2H 7LL");
+		Address address = new Address(postcode,
+				new String[] { "3 the Street", "the Town", "the County", "the Country" });
+		return new Branch(address, sortcode, "newbank");
+	}
+
+	private Branch buildExistingBranch() {
+		SortCode sortcode = new SortCode("55-55-55");
+		PostCode postcode = new PostCode("WC2H 7LT");
+		Address address = new Address(postcode,
+				new String[] { "1 the Street", "the Town", "the County", "the Country" });
+		return new Branch(address, sortcode, "bank1");
 	}
 
 	private void buildAccountHistory() {

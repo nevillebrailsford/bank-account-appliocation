@@ -54,6 +54,10 @@ public class ModelManager {
 		this.listener = listener;
 	}
 
+	public void removeListener(UserInterfaceContract.EventListener listener) {
+		this.listener = null;
+	}
+
 	public void loadModel() throws IOException {
 		localStorage.clearAndLoadManagerWithArchivedData();
 	}
@@ -129,7 +133,7 @@ public class ModelManager {
 				if (change.wasAdded()) {
 					event = new AccountAlteredEvent(new Account(change.getAddedSubList().get(0)), true);
 				} else {
-					event = new AccountAlteredEvent(new Account(change.getAddedSubList().get(0)), false);
+					event = new AccountAlteredEvent(new Account(change.getRemoved().get(0)), false);
 				}
 			} while (change.next());
 			if (ModelManager.this.listener != null) {
