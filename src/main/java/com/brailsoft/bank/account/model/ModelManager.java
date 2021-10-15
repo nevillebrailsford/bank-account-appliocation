@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import com.brailsoft.bank.account.model.events.AccountAlteredEvent;
+import com.brailsoft.bank.account.model.events.BranchAlteredEvent;
+import com.brailsoft.bank.account.model.events.SortCodeAlteredEvent;
 import com.brailsoft.bank.account.persistence.LocalStorage;
 import com.brailsoft.bank.account.userinterface.UserInterfaceContract;
 
@@ -51,10 +54,16 @@ public class ModelManager {
 	}
 
 	public void addListener(UserInterfaceContract.EventListener listener) {
+		if (listener == null) {
+			throw new IllegalArgumentException("ModelManager: listener is null");
+		}
+		if (this.listener != null) {
+			throw new IllegalStateException("Modelmanager: listener already defined");
+		}
 		this.listener = listener;
 	}
 
-	public void removeListener(UserInterfaceContract.EventListener listener) {
+	public void removeListener() {
 		this.listener = null;
 	}
 
@@ -90,7 +99,7 @@ public class ModelManager {
 		branchManager.remove(new Branch(branch));
 	}
 
-	class BranchMapListener implements MapChangeListener<SortCode, Branch> {
+	private class BranchMapListener implements MapChangeListener<SortCode, Branch> {
 		@Override
 		public void onChanged(
 				javafx.collections.MapChangeListener.Change<? extends SortCode, ? extends Branch> change) {
@@ -111,10 +120,19 @@ public class ModelManager {
 		}
 	}
 
-	class AccountMapListener implements MapChangeListener<SortCode, List<Account>> {
+	private class AccountMapListener implements MapChangeListener<SortCode, List<Account>> {
 		@Override
 		public void onChanged(
 				javafx.collections.MapChangeListener.Change<? extends SortCode, ? extends List<Account>> change) {
+			SortCodeAlteredEvent event;
+			if (change.wasAdded()) {
+				event = new SortCodeAlteredEvent(change.getKey(), change.getValueAdded(), true);
+			} else {
+				event = new SortCodeAlteredEvent(change.getKey(), change.getValueRemoved(), false);
+			}
+			if (ModelManager.this.listener != null) {
+				ModelManager.this.listener.onSortCodeAltered(event);
+			}
 			try {
 				ModelManager.this.saveModel();
 			} catch (IOException e) {
@@ -123,7 +141,7 @@ public class ModelManager {
 		}
 	}
 
-	class AccountListListener implements ListChangeListener<Account> {
+	private class AccountListListener implements ListChangeListener<Account> {
 
 		@Override
 		public void onChanged(javafx.collections.ListChangeListener.Change<? extends Account> change) {
@@ -144,58 +162,6 @@ public class ModelManager {
 			} catch (IOException e) {
 				throw new IllegalStateException("ModelManager: I/O exception has occurred : " + e.getMessage());
 			}
-		}
-
-	}
-
-	class BranchAlteredEvent implements UserInterfaceContract.EventBranchAltered {
-		private boolean wasAdded;
-		private Branch branch;
-
-		public BranchAlteredEvent(Branch branch, boolean wasAdded) {
-			this.wasAdded = wasAdded;
-			this.branch = new Branch(branch);
-		}
-
-		@Override
-		public Branch getBranch() {
-			return new Branch(branch);
-		}
-
-		@Override
-		public boolean wasAdded() {
-			return wasAdded;
-		}
-
-		@Override
-		public boolean wasRemoved() {
-			return !wasAdded;
-		}
-
-	}
-
-	class AccountAlteredEvent implements UserInterfaceContract.EventAccountAltered {
-		private boolean wasAdded;
-		private Account account;
-
-		public AccountAlteredEvent(Account account, boolean wasAdded) {
-			this.wasAdded = wasAdded;
-			this.account = new Account(account);
-		}
-
-		@Override
-		public Account getAccount() {
-			return new Account(account);
-		}
-
-		@Override
-		public boolean wasAdded() {
-			return wasAdded;
-		}
-
-		@Override
-		public boolean wasRemoved() {
-			return !wasAdded;
 		}
 
 	}

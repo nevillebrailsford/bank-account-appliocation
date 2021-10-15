@@ -33,41 +33,6 @@ public abstract class LocalStorageBase {
 
 	static Document doc;
 
-	static String createBeginningTab(String tab) {
-		return "<" + tab + ">";
-	}
-
-	static String createEndingTab(String tab) {
-		return "</" + tab + ">";
-	}
-
-	static String extractTab(String s, String tab) {
-		if (tab == null || tab.isBlank() || tab.isEmpty()) {
-			throw new IllegalArgumentException("LocalStorageBase: corrupt request");
-		}
-		String tab1 = createBeginningTab(tab);
-		String tab2 = createEndingTab(tab);
-		String tabData;
-		int tabStart = s.indexOf(tab1);
-		int tabEnd = s.indexOf(tab2);
-		if (tabStart < 0) {
-			throw new IllegalArgumentException("LocalStorageBase: tab not found: " + tab1);
-		}
-		if (tabEnd < 0) {
-			throw new IllegalArgumentException("LocalStorageBase: tab not found: " + tab2);
-		}
-		tabData = s.substring(tabStart + tab1.length(), tabEnd);
-		return tabData;
-	}
-
-	static String formatArchiveString(String tab, String sortcode) {
-		StringBuilder builder = new StringBuilder();
-		builder.append(createBeginningTab(tab));
-		builder.append(sortcode);
-		builder.append(createEndingTab(tab));
-		return builder.toString();
-	}
-
 	static void writeXML(Document doc, OutputStream output) throws IOException {
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
 		Transformer transformer;
