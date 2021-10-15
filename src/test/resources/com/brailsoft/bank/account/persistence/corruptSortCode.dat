@@ -1,1 +1,14 @@
-<Branch><sortcode>55-55-55</Sortcode><bankname>bankname</bankname><Address><postcode>CW3 9ST</postcode><linecount>4</linecount><line>99 The Street</line><line>The Town</line><line>The County</line><line>Country</line></Address></Branch>
+<?xml version="1.0" encoding="UTF-8"?>
+<Branches>
+  <Branch>
+    <sortcode>55-55-55</sortcod>
+    <bankname>bankname</bankname>
+    <Address>
+      <postcode>CW3 9ST</postcode>
+      <line>99 The Street</line>
+      <line>The Town</line>
+      <line>The County</line>
+      <line>Country</line>
+    </Address>
+  </Branch>
+</Branches>

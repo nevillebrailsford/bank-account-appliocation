@@ -6,13 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Paths;
@@ -33,8 +34,6 @@ class LocalStorageBranchTest {
 	private static final String NEW_FILE = "newbranches.dat";
 	private static final String CORRUPT_BRANCH_TAB = "corruptBranch.dat";
 	private static final String CORRUPT_SORTCODE_TAB = "corruptSortCode.dat";
-	private static final String FILE_CONTENTS = "<Branch><sortcode>55-55-55</sortcode><bankname>bankname</bankname><Address><postcode>CW3 9ST</postcode><linecount>4</linecount><line>99 The Street</line><line>The Town</line><line>The County</line><line>Country</line></Address></Branch>";
-
 	private static final String BANK_NAME = "bankname";
 	private static final PostCode POST_CODE = new PostCode("CW3 9ST");
 	private static final String LINE1 = "99 The Street";
@@ -63,7 +62,7 @@ class LocalStorageBranchTest {
 	void testClearAndLoadManagerWithArchivedData() {
 		assertEquals(0, manager.getAllBranches().size());
 		String name = createTestFileName(TEST_FILE);
-		try (BufferedReader inputFile = new BufferedReader(new FileReader(name))) {
+		try (InputStream inputFile = new BufferedInputStream(new FileInputStream(name))) {
 			LocalStorageBranch.clearAndLoadManagerWithArchivedData(inputFile);
 		} catch (Exception e) {
 			fail("Exception occurred: " + e.getMessage());
@@ -77,23 +76,13 @@ class LocalStorageBranchTest {
 		manager.add(new Branch(address, sortcode, BANK_NAME));
 		assertEquals(1, manager.getAllBranches().size());
 		assertFalse((Files.exists(Paths.get(getTestDirectory(), NEW_FILE), LinkOption.NOFOLLOW_LINKS)));
-		try (PrintWriter archiveFile = new PrintWriter(
-				new BufferedWriter(new FileWriter(createTestFileName(NEW_FILE))))) {
+		try (OutputStream archiveFile = new BufferedOutputStream(
+				new FileOutputStream(new File(createTestFileName(NEW_FILE))))) {
 			LocalStorageBranch.archiveDataFromManager(archiveFile);
 		} catch (Exception e) {
 			fail("Exception occurred: " + e.getMessage());
 		}
 		assertTrue((Files.exists(Paths.get(getTestDirectory(), NEW_FILE), LinkOption.NOFOLLOW_LINKS)));
-		int numberOfRecords = 0;
-		try (BufferedReader inputFile = new BufferedReader(new FileReader(createTestFileName(NEW_FILE)))) {
-			do {
-				assertEquals(FILE_CONTENTS, inputFile.readLine());
-				numberOfRecords++;
-			} while (inputFile.ready());
-		} catch (Exception e) {
-			fail("Exception occurred: " + e.getMessage());
-		}
-		assertEquals(1, numberOfRecords);
 	}
 
 	@Test
@@ -101,13 +90,14 @@ class LocalStorageBranchTest {
 		assertEquals(0, manager.getAllBranches().size());
 		IOException exception = assertThrows(IOException.class, () -> {
 			String name = createTestFileName(CORRUPT_BRANCH_TAB);
-			try (BufferedReader inputFile = new BufferedReader(new FileReader(name))) {
+			try (InputStream inputFile = new BufferedInputStream(new FileInputStream(name))) {
 				LocalStorageBranch.clearAndLoadManagerWithArchivedData(inputFile);
 			} catch (Exception e) {
 				throw new IOException("Exception occurred: " + e.getMessage());
 			}
 		});
-		assertEquals("Exception occurred: LocalStorageAccount: Branch missing from entry", exception.getMessage());
+		assertEquals("Exception occurred: XML document structures must start and end within the same entity.",
+				exception.getMessage());
 
 	}
 
@@ -116,13 +106,15 @@ class LocalStorageBranchTest {
 		assertEquals(0, manager.getAllBranches().size());
 		IOException exception = assertThrows(IOException.class, () -> {
 			String name = createTestFileName(CORRUPT_SORTCODE_TAB);
-			try (BufferedReader inputFile = new BufferedReader(new FileReader(name))) {
+			try (InputStream inputFile = new BufferedInputStream(new FileInputStream(name))) {
 				LocalStorageBranch.clearAndLoadManagerWithArchivedData(inputFile);
 			} catch (Exception e) {
 				throw new IOException("Exception occurred: " + e.getMessage());
 			}
 		});
-		assertEquals("Exception occurred: LocalStorageBase: tab not found: </sortcode>", exception.getMessage());
+		assertEquals(
+				"Exception occurred: The element type \"sortcode\" must be terminated by the matching end-tag \"</sortcode>\".",
+				exception.getMessage());
 	}
 
 	private String getTestDirectory() {

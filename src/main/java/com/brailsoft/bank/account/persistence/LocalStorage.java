@@ -1,12 +1,13 @@
 package com.brailsoft.bank.account.persistence;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class LocalStorage {
 	private static LocalStorage instance = null;
@@ -52,12 +53,12 @@ public class LocalStorage {
 		if (!accountFile.exists()) {
 			throw new IOException("File storage: Account file not found");
 		}
-		try (BufferedReader archiveFile = new BufferedReader(new FileReader(branchFile))) {
+		try (InputStream archiveFile = new BufferedInputStream(new FileInputStream(branchFile))) {
 			LocalStorageBranch.clearAndLoadManagerWithArchivedData(archiveFile);
 		} catch (Exception e) {
 			throw new IOException("FileStorage: Exception occurred: " + e.getMessage());
 		}
-		try (BufferedReader archiveFile = new BufferedReader(new FileReader(accountFile))) {
+		try (InputStream archiveFile = new BufferedInputStream(new FileInputStream(accountFile))) {
 			LocalStorageAccount.clearAndLoadManagerWithArchivedData(archiveFile);
 		} catch (Exception e) {
 			throw new IOException("FileStorage: Exception occurred: " + e.getMessage());
@@ -67,12 +68,12 @@ public class LocalStorage {
 	public void archiveDataFromManager() throws IOException {
 		File branchFile = new File(directory, BRANCH_FILE);
 		File accountFile = new File(directory, ACCOUNT_FILE);
-		try (PrintWriter archiveFile = new PrintWriter(new BufferedWriter(new FileWriter(branchFile)))) {
+		try (OutputStream archiveFile = new BufferedOutputStream(new FileOutputStream(branchFile))) {
 			LocalStorageBranch.archiveDataFromManager(archiveFile);
 		} catch (Exception e) {
 			throw new IOException("FileStorage: Exception occurred: " + e.getMessage());
 		}
-		try (PrintWriter archiveFile = new PrintWriter(new BufferedWriter(new FileWriter(accountFile)))) {
+		try (OutputStream archiveFile = new BufferedOutputStream(new FileOutputStream(accountFile))) {
 			LocalStorageAccount.archiveDataFromManager(archiveFile);
 		} catch (Exception e) {
 			throw new IOException("FileStorage: Exception occurred: " + e.getMessage());
