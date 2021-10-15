@@ -1,8 +1,18 @@
 package com.brailsoft.bank.account.persistence;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import com.brailsoft.bank.account.model.Account;
 import com.brailsoft.bank.account.model.AccountManager;
@@ -10,75 +20,84 @@ import com.brailsoft.bank.account.model.AccountType;
 import com.brailsoft.bank.account.model.SortCode;
 
 public class LocalStorageAccount extends LocalStorageBase {
-	private static final String SORTCODE_TAB = "sortcode";
-	private static final String NUMBER_TAB = "number";
-	private static final String NAME_TAB = "name";
-	private static final String TYPE_TAB = "type";
-	private static final String ACCOUNT_KEY_WORD = "Account";
 
 	private static AccountManager accountManager = AccountManager.getInstance();
 
-	public static void clearAndLoadManagerWithArchivedData(BufferedReader archiveFile) throws IOException {
+	public static void clearAndLoadManagerWithArchivedData(InputStream archiveFile) throws IOException {
 		accountManager.clear();
 		loadManagerWithArchivedData(archiveFile);
 	}
 
-	public static void archiveDataFromManager(PrintWriter archiveFile) throws IOException {
-		accountManager.getAllAccounts().stream().forEach(account -> {
-			archiveFile.println(formatOutput(account));
-		});
-	}
+	public static void archiveDataFromManager(OutputStream archiveFile) throws IOException {
+		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 
-	private static void loadManagerWithArchivedData(BufferedReader archiveFile) throws IOException {
-		do {
-			String s = archiveFile.readLine();
-			if (!(s == null || s.isBlank() || s.isEmpty())) {
-				accountManager.add(buildAccountFromEntry(s));
-			}
-		} while (archiveFile.ready());
-	}
+		DocumentBuilder docBuilder;
+		try {
+			docBuilder = docFactory.newDocumentBuilder();
+			doc = docBuilder.newDocument();
 
-	private static Account buildAccountFromEntry(String s) throws IOException {
-		if (!s.startsWith(createBeginningTab(ACCOUNT_KEY_WORD)) || !s.endsWith(createEndingTab(ACCOUNT_KEY_WORD))) {
-			throw new IOException("LocalStorageAccount: " + ACCOUNT_KEY_WORD + " missing from entry");
+			Element rootElement = doc.createElement(ACCOUNT_ROOT_ELEMENT_NAME);
+			doc.appendChild(rootElement);
+
+			accountManager.getAllAccounts().stream().forEach(account -> {
+				Element accountElement = buildAccountElement(account);
+				rootElement.appendChild(accountElement);
+			});
+
+			writeXML(doc, archiveFile);
+		} catch (ParserConfigurationException e1) {
+			throw new IOException(e1.getMessage());
 		}
-		String type = extractAccountType(s);
-		String name = extractName(s);
-		String number = extractNumber(s);
-		String sortCode = extractSortCode(s);
 
-		return new Account(AccountType.valueOf(type), name, number, new SortCode(sortCode));
 	}
 
-	private static String extractAccountType(String s) {
-		String type = extractTab(s, TYPE_TAB);
-		return type;
+	private static void loadManagerWithArchivedData(InputStream archiveFile) throws IOException {
+		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+
+		DocumentBuilder docBuilder;
+		try {
+			docBuilder = docFactory.newDocumentBuilder();
+
+			Document doc = docBuilder.parse(archiveFile);
+
+			doc.getDocumentElement().normalize();
+
+			NodeList list = doc.getElementsByTagName(ACCOUNT_KEY_WORD);
+
+			for (int index = 0; index < list.getLength(); index++) {
+				Node node = list.item(index);
+				if (node.getNodeType() == Node.ELEMENT_NODE) {
+					Element accountElement = (Element) node;
+					Account account = buildAccountFromElement(accountElement);
+					AccountManager.getInstance().add(account);
+				}
+			}
+		} catch (ParserConfigurationException e) {
+			throw new IOException(e.getMessage());
+		} catch (SAXException e) {
+			throw new IOException(e.getMessage());
+		}
+
 	}
 
-	private static String extractName(String s) {
-		String name = extractTab(s, NAME_TAB);
-		return name;
+	private static Account buildAccountFromElement(Element accountElement) {
+		Account account = null;
+		String type = accountElement.getElementsByTagName(TYPE_TAG).item(0).getTextContent();
+		String name = accountElement.getElementsByTagName(NAME_TAG).item(0).getTextContent();
+		String number = accountElement.getElementsByTagName(NUMBER_TAG).item(0).getTextContent();
+		String sortcode = accountElement.getElementsByTagName(SORTCODE_TAG).item(0).getTextContent();
+
+		account = new Account(AccountType.valueOf(type), name, number, new SortCode(sortcode));
+		return account;
 	}
 
-	private static String extractNumber(String s) {
-		String name = extractTab(s, NUMBER_TAB);
-		return name;
-	}
-
-	private static String extractSortCode(String s) {
-		String name = extractTab(s, SORTCODE_TAB);
-		return name;
-	}
-
-	private static String formatOutput(Account account) {
-		StringBuilder builder = new StringBuilder();
-		builder.append(createBeginningTab(ACCOUNT_KEY_WORD));
-		builder.append(formatArchiveString(TYPE_TAB, account.getType().toString()));
-		builder.append(formatArchiveString(NAME_TAB, account.getName()));
-		builder.append(formatArchiveString(NUMBER_TAB, account.getNumber()));
-		builder.append(formatArchiveString(SORTCODE_TAB, account.getSortCode().toString()));
-		builder.append(createEndingTab(ACCOUNT_KEY_WORD));
-		return builder.toString();
+	private static Element buildAccountElement(Account account) {
+		Element accountElement = doc.createElement(ACCOUNT_KEY_WORD);
+		accountElement.appendChild(buildElement(TYPE_TAG, account.getType().toString()));
+		accountElement.appendChild(buildElement(NAME_TAG, account.getName()));
+		accountElement.appendChild(buildElement(NUMBER_TAG, account.getNumber()));
+		accountElement.appendChild(buildElement(SORTCODE_TAG, account.getSortCode().toString()));
+		return accountElement;
 	}
 
 }

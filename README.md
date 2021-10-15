@@ -1,2 +1,2 @@
-# bank-account-appliocation
-A way of keeping track eye of bank accounts that you use
+# bank-account-application
+A way of keeping an eye of bank accounts that you use

@@ -1,1 +1,9 @@
-<Account><type>CURRENT</type><name>My Account</name><number>12345678</number><sortcode>55-55-55</sortcode></Account>
+<?xml version="1.0" encoding="UTF-8"?>
+<Accounts>
+  <Account>
+    <type>CURRENT</type>
+    <name>account1</name>
+    <number>87654321</number>
+    <sortcode>44-44-44</sortcode>
+  </Account>
+</Accounts>

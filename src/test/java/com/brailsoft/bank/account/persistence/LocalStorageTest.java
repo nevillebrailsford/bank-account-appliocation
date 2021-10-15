@@ -26,6 +26,8 @@ import com.brailsoft.bank.account.model.SortCode;
 
 class LocalStorageTest {
 
+	private static final String BRANCH_DAT = "branch.dat";
+	private static final String ACCOUNT_DAT = "account.dat";
 	static final String DIRECTORY_TEST = "bank.test";
 	static final String DIRECTORY_SWITCH = "bank.switch";
 	File directory = new File(System.getProperty("user.home"), DIRECTORY_TEST);
@@ -56,10 +58,10 @@ class LocalStorageTest {
 
 	@AfterEach
 	void tearDown() throws Exception {
-		Files.deleteIfExists(Paths.get(directory.getAbsolutePath(), "account.dat"));
-		Files.deleteIfExists(Paths.get(directory.getAbsolutePath(), "branch.dat"));
-		Files.deleteIfExists(Paths.get(directory_switch.getAbsolutePath(), "account.dat"));
-		Files.deleteIfExists(Paths.get(directory_switch.getAbsolutePath(), "branch.dat"));
+		Files.deleteIfExists(Paths.get(directory.getAbsolutePath(), ACCOUNT_DAT));
+		Files.deleteIfExists(Paths.get(directory.getAbsolutePath(), BRANCH_DAT));
+		Files.deleteIfExists(Paths.get(directory_switch.getAbsolutePath(), ACCOUNT_DAT));
+		Files.deleteIfExists(Paths.get(directory_switch.getAbsolutePath(), BRANCH_DAT));
 		Files.deleteIfExists(Paths.get(directory.getAbsolutePath()));
 		Files.deleteIfExists(Paths.get(directory_switch.getAbsolutePath()));
 
@@ -91,8 +93,8 @@ class LocalStorageTest {
 		AccountManager.getInstance().add(account);
 		BranchManager.getInstance().add(branch);
 		storage.archiveDataFromManager();
-		assertTrue(fileExistsAndIsValid(new File(directory, "account.dat")));
-		assertTrue(fileExistsAndIsValid(new File(directory, "branch.dat")));
+		assertTrue(fileExistsAndIsValid(new File(directory, ACCOUNT_DAT)));
+		assertTrue(fileExistsAndIsValid(new File(directory, BRANCH_DAT)));
 	}
 
 	@Test
@@ -118,10 +120,13 @@ class LocalStorageTest {
 			} catch (Exception e) {
 				return false;
 			}
-			if (noOfRecords != 1) {
+			if (file.getName().equals(ACCOUNT_DAT) && noOfRecords == 9) {
+				return true;
+			} else if (file.getName().equals(BRANCH_DAT) && noOfRecords == 14) {
+				return true;
+			} else {
 				return false;
 			}
-			return true;
 		}
 		return false;
 	}
